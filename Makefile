@@ -1,7 +1,7 @@
 .PHONY: all
 all: generator primeCounter
 
-generator:  generator.c
+generator:  generator_basic.c
 	gcc -o randomGenerator generator.c
 
 primeCounter:	primeCounter.c
