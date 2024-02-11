@@ -1,10 +1,10 @@
 .PHONY: all
 all: generator primeCounter
 
-generator:  generator_basic.c
+generator:  generator.c
 	gcc -o randomGenerator generator.c
 
-primeCounter:	primeCounter.c
+primeCounter:	primeCounter_basic.c
 	gcc -o primeCounter primeCounter.c
 
 .PHONY: clean
