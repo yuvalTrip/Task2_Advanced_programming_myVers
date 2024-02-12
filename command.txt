@@ -1,0 +1,3 @@
+time ./randomGenerator 6 10000000 | valgrind --tool=massif --heap=yes --stacks=no ./primeCounter
+
+ms_print filename

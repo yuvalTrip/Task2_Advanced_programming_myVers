@@ -1,0 +1,11 @@
+base results:
+    1st: run
+        real    2m18.982s
+        user    2m8.695s
+        sys     0m11.605s
+
+    2nd run:
+        real    2m1.981s
+        user    1m49.970s
+        sys     0m14.345s
+
