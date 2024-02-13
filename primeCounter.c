@@ -1,73 +1,54 @@
 #include <stdio.h>
-#include <stdbool.h>
+#include <stdlib.h>
 #include <pthread.h>
 
-#define MAX_NUMBERS 1000 // Maximum number of integers to process
-#define NUM_THREADS 4     // Number of threads to use
+#define NUM_THREADS 4  // Adjust this according to your system and workload
 
-// Global variables
-int numbers[MAX_NUMBERS];
-int total_primes = 0;
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-
-// Function to check if a number is prime
-bool isPrime(int n) {
-    if (n <= 1) {
-        return false;
+int is_prime(int num) {
+    if (num <= 1) return 0;  // Not a prime number
+    for (int i = 2; i * i <= num; ++i) {
+        if (num % i == 0) return 0;  // Not a prime number
     }
-    for (int i = 2; i * i <= n; i++) {
-        if (n % i == 0) {
-            return false;
-        }
-    }
-    return true;
+    return 1;  // Prime number
 }
 
-// Worker function for each thread
-void* threadWorker(void* arg) {
-    int start = *((int*)arg); // Starting index for this thread
-    int end = start + (MAX_NUMBERS / NUM_THREADS); // Ending index
+typedef struct {
+    int start;
+    int end;
+    int count;
+} ThreadData;
 
-    int local_count = 0; // Local count of prime numbers
-
-    // Iterate over assigned range of numbers and count primes
-    for (int i = start; i < end; i++) {
-        if (isPrime(numbers[i])) {
-            local_count++;
+void *find_primes(void *arg) {
+    ThreadData *data = (ThreadData *)arg;
+    int count = 0;
+    for (int i = data->start; i <= data->end; ++i) {
+        if (is_prime(i)) {
+            count++;
         }
     }
-
-    // Update global count of prime numbers using mutex
-    pthread_mutex_lock(&mutex);
-    total_primes += local_count;
-    pthread_mutex_unlock(&mutex);
-
+    data->count = count;
     pthread_exit(NULL);
 }
 
 int main() {
-    // Read numbers from stdin
-    int num, num_count = 0;
-    while (scanf("%d", &num) != EOF && num_count < MAX_NUMBERS) {
-        numbers[num_count++] = num;
-    }
-
-    // Create threads
+    int total_count = 0;
     pthread_t threads[NUM_THREADS];
-    int thread_args[NUM_THREADS];
+    ThreadData thread_data[NUM_THREADS];
+    int range = 1000000;  // Adjust the range as needed
 
-    // Start threads
-    for (int i = 0; i < NUM_THREADS; i++) {
-        thread_args[i] = i * (MAX_NUMBERS / NUM_THREADS); // Assigning starting index for each thread
-        pthread_create(&threads[i], NULL, threadWorker, &thread_args[i]);
+    int chunk_size = range / NUM_THREADS;
+    for (int i = 0; i < NUM_THREADS; ++i) {
+        thread_data[i].start = i * chunk_size + 1;
+        thread_data[i].end = (i == NUM_THREADS - 1) ? range : (i + 1) * chunk_size;
+        pthread_create(&threads[i], NULL, find_primes, (void *)&thread_data[i]);
     }
 
-    // Wait for threads to finish
-    for (int i = 0; i < NUM_THREADS; i++) {
+    for (int i = 0; i < NUM_THREADS; ++i) {
         pthread_join(threads[i], NULL);
+        total_count += thread_data[i].count;
     }
 
-    printf("%d total primes.\n", total_primes);
+    printf("Total prime numbers: %d\n", total_count);
 
     return 0;
 }
