@@ -1,17 +1,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <stdio.h>
+#include <stdbool.h>
+#define NUM_THREADS 1 // Adjust this according to your system and workload
 
-#define NUM_THREADS 4  // Adjust this according to your system and workload
-
-int is_prime(int num) {
-    if (num <= 1) return 0;  // Not a prime number
-    for (int i = 2; i * i <= num; ++i) {
-        if (num % i == 0) return 0;  // Not a prime number
+// Function to check if a number is prime
+bool isPrime(int n) {
+    if (n <= 1) {
+        return false;
     }
-    return 1;  // Prime number
+    for (int i = 2; i * i <= n; i++) {
+        if (n % i == 0) {
+            return false;
+        }
+    }
+    return true;
 }
-
+//bool isPrime(int n) {
+//    if (n <= 1) {
+//        return false;
+//    }
+//    for (int i = 2; i * i <= n; i++) {
+//        if (n % i == 0) {
+//            return false;
+//        }
+//    }
+//    return true;
+//}
 typedef struct {
     int start;
     int end;
@@ -22,11 +38,13 @@ void *find_primes(void *arg) {
     ThreadData *data = (ThreadData *)arg;
     int count = 0;
     for (int i = data->start; i <= data->end; ++i) {
-        if (is_prime(i)) {
+        if (isPrime(i)) {
             count++;
         }
     }
     data->count = count;
+    printf("data->count %d\n", data->count);
+
     pthread_exit(NULL);
 }
 
@@ -34,7 +52,7 @@ int main() {
     int total_count = 0;
     pthread_t threads[NUM_THREADS];
     ThreadData thread_data[NUM_THREADS];
-    int range = 1000000;  // Adjust the range as needed
+    int range = 10000000;  // Adjust the range as needed
 
     int chunk_size = range / NUM_THREADS;
     for (int i = 0; i < NUM_THREADS; ++i) {
@@ -45,6 +63,7 @@ int main() {
 
     for (int i = 0; i < NUM_THREADS; ++i) {
         pthread_join(threads[i], NULL);
+        printf("thread_data[%d].count %d\n", i, thread_data[i].count);
         total_count += thread_data[i].count;
     }
 
