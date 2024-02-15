@@ -12,6 +12,8 @@ Queue queues[NUM_THREADS];
 Queue copy_queues[NUM_THREADS];
 int counters[NUM_THREADS];
 
+
+
 void *readData(void *args) {
     int num;
     int index = 0;
@@ -37,6 +39,7 @@ bool isPrime(int n) {
     printf("num: %d\n", n);
     return true;
 }
+
 
 void *find_primes(void *args) {
     int ind = *((int *) args);
