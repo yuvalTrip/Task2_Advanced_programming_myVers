@@ -9,6 +9,7 @@
 
 bool finishReading = false;
 Queue queues[NUM_THREADS];
+Queue copy_queues[NUM_THREADS];
 int counters[NUM_THREADS];
 
 void *readData(void *args) {
@@ -20,6 +21,7 @@ void *readData(void *args) {
         while (!enqueue(&queues[index], num,tempind)) {
             index = (index + 1) % NUM_THREADS;
         }
+        enqueue(&copy_queues[index], num, tempind);
         tempind++;
         index = (index + 1) % NUM_THREADS;
     }
@@ -49,20 +51,26 @@ void *find_primes(void *args) {
 }
 
 int main() {
+    pthread_t t_queueWorkers[NUM_THREADS];
+    int *thread_ids[NUM_THREADS];
+    for (int i = 0; i < NUM_THREADS; i++) {
+        initializeQueue(&queues[i]);
+    }
     pthread_t t_readData;
     pthread_create(&t_readData, NULL, readData, NULL);
 
-    pthread_t t_queueWorkers[NUM_THREADS];
-    int *thread_ids[NUM_THREADS];
 
     for (int i = 0; i < NUM_THREADS; i++) {
         thread_ids[i] = malloc(sizeof(int));
         *thread_ids[i] = i;
-        initializeQueue(&queues[i]);
         pthread_create(&t_queueWorkers[i], NULL, find_primes, (void *) thread_ids[i]);
     }
 
     pthread_join(t_readData, NULL);
+
+    for (int i = 0; i < NUM_THREADS; i++) {
+        printQueue(&copy_queues[i]);
+    }
 
     for (int i = 0; i < NUM_THREADS; i++) {
         pthread_join(t_queueWorkers[i], NULL);

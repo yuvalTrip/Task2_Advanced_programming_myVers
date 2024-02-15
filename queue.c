@@ -1,11 +1,22 @@
-//
-// Created by yuvalbs on 2/15/24.
-//
-// Define your queue data structure
 #include "queue.h"
 #include <stdbool.h>
 #include <stdio.h>
+#include <pthread.h> // Include pthread library for mutex
 
+// Function to print the contents of the queue
+void printQueue(Queue *q) {
+    pthread_mutex_lock(&(q->lock)); // Acquire lock before accessing the queue
+    printf("Queue contents: ");
+    int i = q->front;
+    int count = 0;
+    while (count < q->size) {
+        printf("%d ", q->data[i]);
+        i = (i + 1) % MAX_QUEUE_SIZE;
+        count++;
+    }
+    printf("\n");
+    pthread_mutex_unlock(&(q->lock)); // Release lock after accessing the queue
+}
 
 // Function to initialize the queue
 void initializeQueue(Queue *q) {
@@ -13,7 +24,7 @@ void initializeQueue(Queue *q) {
     q->rear = -1;
     q->size = 0;
     q->index = 0;
-
+    pthread_mutex_init(&(q->lock), NULL); // Initialize mutex lock
 }
 
 // Function to check if queue is full
@@ -23,41 +34,33 @@ int isFull(Queue *q) {
 
 // Function to check if queue is empty
 int isEmpty(Queue *q) {
-    //printf("q->size: %d\n",q->size);
     return (q->size == 0);
 }
 
 // Function to enqueue an element
-bool enqueue(Queue *q, int value,int index) {
-
-
+bool enqueue(Queue *q, int value, int index) {
+    pthread_mutex_lock(&(q->lock)); // Acquire lock before modifying the queue
     if (!isFull(q)) {
-        //printf("im in enque\n");
-
         q->rear = (q->rear + 1) % MAX_QUEUE_SIZE;
         q->data[q->rear] = value;
         q->size++;
-        q->index=index;
-
-        //printf("second q->size: %d",q->size);
-
-        return true;//if we succeed to push
+        q->index = index;
+        pthread_mutex_unlock(&(q->lock)); // Release lock after modification
+        return true;
     }
-    return false;//if we do not succeed to push i.e the queue is full
+    pthread_mutex_unlock(&(q->lock)); // Release lock if queue is full
+    return false;
 }
 
 // Function to dequeue an element
 int dequeue(Queue *q) {
-    //printf("before dequeue!!");
-
+    pthread_mutex_lock(&(q->lock)); // Acquire lock before modifying the queue
+    int value = -1; // Default value if queue is empty
     if (!isEmpty(q)) {
-        //printf("dequeue!!");
-
-        int value = q->data[q->front];
+        value = q->data[q->front];
         q->front = (q->front + 1) % MAX_QUEUE_SIZE;
         q->size--;
-        return value;
-    } else {
-        return -1; // Assuming -1 represents an empty queue or invalid data
     }
+    pthread_mutex_unlock(&(q->lock)); // Release lock after modification
+    return value;
 }
