@@ -1,15 +1,18 @@
 .PHONY: all
-all: generator primeCounter
+all: generator primeCounter queue
 
 generator:  generator.c
 	gcc -o randomGenerator generator.c
 
-primeCounter:	primeCounter_basic.c
-	gcc -o primeCounter primeCounter.c -pthread
+primeCounter:	primeCounter.c queue.o
+	gcc -o primeCounter primeCounter.c queue.o -pthread
 
 primeCounter_basic:	primeCounter_basic.c
 	gcc -o primeCounter_basic primeCounter_basic.c -pthread
 
+queue:	queue.c queue.h
+	gcc -c -o queue.o queue.c
 .PHONY: clean
+
 clean:
-	-rm randomGenerator primeCounter 2>/dev/null
+	-rm randomGenerator primeCounter queue.o 2>/dev/null
