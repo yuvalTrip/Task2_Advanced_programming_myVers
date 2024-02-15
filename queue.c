@@ -12,6 +12,8 @@ void initializeQueue(Queue *q) {
     q->front = 0;
     q->rear = -1;
     q->size = 0;
+    q->index = 0;
+
 }
 
 // Function to check if queue is full
@@ -26,7 +28,7 @@ int isEmpty(Queue *q) {
 }
 
 // Function to enqueue an element
-bool enqueue(Queue *q, int value) {
+bool enqueue(Queue *q, int value,int index) {
 
 
     if (!isFull(q)) {
@@ -35,6 +37,8 @@ bool enqueue(Queue *q, int value) {
         q->rear = (q->rear + 1) % MAX_QUEUE_SIZE;
         q->data[q->rear] = value;
         q->size++;
+        q->index=index;
+
         //printf("second q->size: %d",q->size);
 
         return true;//if we succeed to push
