@@ -6,16 +6,17 @@
 // Function to print the contents of the queue
 void printQueue(Queue *q) {
     pthread_mutex_lock(&(q->lock)); // Acquire lock before accessing the queue
-    printf("Queue contents: ");
+    //printf("Queue contents: ");
     int i = q->front;
     int count = 0;
     while (count < q->size) {
-        printf("%d ", q->data[i]);
+        //printf("i val: %d\n",i);
+        //printf("%d ", q->data[i]);
         i = (i + 1) % MAX_QUEUE_SIZE;
         count++;
     }
-    printf("\n");
-    pthread_mutex_unlock(&(q->lock)); // Release lock after accessing the queue
+    //printf("\n");
+    //pthread_mutex_unlock(&(q->lock)); // Release lock after accessing the queue
 }
 
 // Function to initialize the queue
@@ -23,7 +24,6 @@ void initializeQueue(Queue *q) {
     q->front = 0;
     q->rear = -1;
     q->size = 0;
-    q->index = 0;
     pthread_mutex_init(&(q->lock), NULL); // Initialize mutex lock
 }
 
@@ -38,13 +38,14 @@ int isEmpty(Queue *q) {
 }
 
 // Function to enqueue an element
-bool enqueue(Queue *q, int value, int index) {
+bool enqueue(Queue *q, int value ) {
     pthread_mutex_lock(&(q->lock)); // Acquire lock before modifying the queue
     if (!isFull(q)) {
         q->rear = (q->rear + 1) % MAX_QUEUE_SIZE;
         q->data[q->rear] = value;
+        // printf("q->data[q->rear]: %d\n",q->data[q->rear]);
+
         q->size++;
-        q->index = index;
         pthread_mutex_unlock(&(q->lock)); // Release lock after modification
         return true;
     }

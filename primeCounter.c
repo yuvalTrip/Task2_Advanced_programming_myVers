@@ -9,22 +9,23 @@
 
 bool finishReading = false;
 Queue queues[NUM_THREADS];
-Queue copy_queues[NUM_THREADS];
+//Queue copy_queues[NUM_THREADS];
 int counters[NUM_THREADS];
 
 
 
 void *readData(void *args) {
-    int num;
+    int num= 0;
     int index = 0;
-    int tempind=0;
     while (scanf("%d", &num) != EOF) {
       //  printf(" tempind : %d, value: %d \n", tempind,num);
-        while (!enqueue(&queues[index], num,tempind)) {
+        while (!enqueue(&queues[index], num)) {
             index = (index + 1) % NUM_THREADS;
         }
-        enqueue(&copy_queues[index], num, tempind);
-        tempind++;
+         //(num ==0 ) { printf("got zero***");}
+//        enqueue(&copy_queues[index], num);
+//        printQueue(&copy_queues[index]);
+
         index = (index + 1) % NUM_THREADS;
     }
     finishReading = true;
@@ -36,7 +37,7 @@ bool isPrime(int n) {
     for (int i = 2; i * i <= n; i++) {
         if (n % i == 0) return false;
     }
-    printf("num: %d\n", n);
+    //printf("num: %d\n", n);
     return true;
 }
 
@@ -58,6 +59,7 @@ int main() {
     int *thread_ids[NUM_THREADS];
     for (int i = 0; i < NUM_THREADS; i++) {
         initializeQueue(&queues[i]);
+        //initializeQueue(&copy_queues[i]); // Initialize copy_queues
     }
     pthread_t t_readData;
     pthread_create(&t_readData, NULL, readData, NULL);
@@ -72,7 +74,7 @@ int main() {
     pthread_join(t_readData, NULL);
 
     for (int i = 0; i < NUM_THREADS; i++) {
-        printQueue(&copy_queues[i]);
+       // printQueue(&copy_queues[i]);
     }
 
     for (int i = 0; i < NUM_THREADS; i++) {
