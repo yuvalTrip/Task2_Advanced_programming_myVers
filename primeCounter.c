@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <stdbool.h>
-#include <malloc.h>
+#include <math.h>
 #include "queue.h"
 
 #define NUM_THREADS 4
@@ -9,23 +9,21 @@
 
 bool finishReading = false;
 Queue queues[NUM_THREADS];
-//Queue copy_queues[NUM_THREADS];
 int counters[NUM_THREADS];
-
-
+pthread_mutex_t mutexes[NUM_THREADS];
 
 void *readData(void *args) {
-    int num= 0;
+    int num = 0;
     int index = 0;
     while (scanf("%d", &num) != EOF) {
-      //  printf(" tempind : %d, value: %d \n", tempind,num);
-        while (!enqueue(&queues[index], num)) {
+        pthread_mutex_lock(&mutexes[index]);
+        while (isFull(&queues[index])) {
+            pthread_mutex_unlock(&mutexes[index]);
             index = (index + 1) % NUM_THREADS;
+            pthread_mutex_lock(&mutexes[index]);
         }
-         //(num ==0 ) { printf("got zero***");}
-//        enqueue(&copy_queues[index], num);
-//        printQueue(&copy_queues[index]);
-
+        enqueue(&queues[index], num);
+        pthread_mutex_unlock(&mutexes[index]);
         index = (index + 1) % NUM_THREADS;
     }
     finishReading = true;
@@ -34,20 +32,29 @@ void *readData(void *args) {
 
 bool isPrime(int n) {
     if (n <= 1) return false;
-    for (int i = 2; i * i <= n; i++) {
-        if (n % i == 0) return false;
+    if (n <= 3) return true;
+    if (n % 2 == 0 || n % 3 == 0) return false;
+    int i = 5;
+    while (i * i <= n) {
+        if (n % i == 0 || n % (i + 2) == 0) return false;
+        i += 6;
     }
-    //printf("num: %d\n", n);
     return true;
 }
-
 
 void *find_primes(void *args) {
     int ind = *((int *) args);
     int count = 0;
-    while (!isEmpty(&queues[ind]) || (!finishReading)) {
-        if (!isEmpty(&queues[ind]) && isPrime(dequeue(&queues[ind]))) {
-            count++;
+    int batch_size = 1000; // Batch size for dequeuing
+    int nums[batch_size];
+    while (!finishReading || !isEmpty(&queues[ind])) {
+        pthread_mutex_lock(&mutexes[ind]);
+        int dequeued = dequeueMany(&queues[ind], nums, batch_size);
+        pthread_mutex_unlock(&mutexes[ind]);
+        for (int i = 0; i < dequeued; ++i) {
+            if (isPrime(nums[i])) {
+                count++;
+            }
         }
     }
     counters[ind] = count;
@@ -56,30 +63,25 @@ void *find_primes(void *args) {
 
 int main() {
     pthread_t t_queueWorkers[NUM_THREADS];
-    int *thread_ids[NUM_THREADS];
+    pthread_t t_readData;
+    int thread_ids[NUM_THREADS];
+
     for (int i = 0; i < NUM_THREADS; i++) {
         initializeQueue(&queues[i]);
-        //initializeQueue(&copy_queues[i]); // Initialize copy_queues
+        pthread_mutex_init(&mutexes[i], NULL);
+        thread_ids[i] = i;  // Store thread ID explicitly
     }
-    pthread_t t_readData;
+
     pthread_create(&t_readData, NULL, readData, NULL);
 
-
     for (int i = 0; i < NUM_THREADS; i++) {
-        thread_ids[i] = malloc(sizeof(int));
-        *thread_ids[i] = i;
-        pthread_create(&t_queueWorkers[i], NULL, find_primes, (void *) thread_ids[i]);
+        pthread_create(&t_queueWorkers[i], NULL, find_primes, (void *) &thread_ids[i]);
     }
 
     pthread_join(t_readData, NULL);
 
     for (int i = 0; i < NUM_THREADS; i++) {
-       // printQueue(&copy_queues[i]);
-    }
-
-    for (int i = 0; i < NUM_THREADS; i++) {
         pthread_join(t_queueWorkers[i], NULL);
-        free(thread_ids[i]);
     }
 
     int total_count = 0;
