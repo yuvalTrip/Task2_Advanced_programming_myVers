@@ -12,6 +12,7 @@ Queue queues[NUM_THREADS];
 int counters[NUM_THREADS];
 pthread_mutex_t mutexes[NUM_THREADS];
 
+
 void *readData(void *args) {
     int num = 0;
     int index = 0;
