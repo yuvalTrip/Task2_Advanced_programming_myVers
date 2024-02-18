@@ -14,7 +14,7 @@ pthread_mutex_t mutexes[NUM_THREADS];
 void *readData(void *args) {
     int num = 0;
     int index = 0;
-    int batch_size = 10; // Adjust the batch size as needed
+    int batch_size = 100; // Adjust the batch size as needed
     int numbers[batch_size];
     int first_index_to_override = 0;
 
