@@ -5,44 +5,37 @@
 #include "queue.h"
 
 #define NUM_THREADS 4
-#define MAX_NUMBERS 1000
 
 bool finishReading = false;
 Queue queues[NUM_THREADS];
 int counters[NUM_THREADS];
 pthread_mutex_t mutexes[NUM_THREADS];
 
-
 void *readData(void *args) {
     int num = 0;
     int index = 0;
+    int batch_size = 10; // Adjust the batch size as needed
+    int numbers[batch_size];
+    int first_index_to_override = 0;
+
     while (scanf("%d", &num) != EOF) {
-        pthread_mutex_lock(&mutexes[index]);
-        while (isFull(&queues[index])) {
-            pthread_mutex_unlock(&mutexes[index]);
-            index = (index + 1) % NUM_THREADS;
-            pthread_mutex_lock(&mutexes[index]);
+        numbers[first_index_to_override++] = num;
+        if (first_index_to_override == batch_size){ ///////////////
+            first_index_to_override = enqueueMany(&queues[index], numbers, first_index_to_override); ///////////////
+            index = (index + 1) % NUM_THREADS; ///////////////////////////////
         }
-        enqueue(&queues[index], num);
-        pthread_mutex_unlock(&mutexes[index]);
-        index = (index + 1) % NUM_THREADS;
     }
+    // Enqueue remaining numbers
+    if (first_index_to_override > 0) {
+        pthread_mutex_lock(&mutexes[index]);
+        enqueueMany(&queues[index], numbers, first_index_to_override); // Think about it
+        pthread_mutex_unlock(&mutexes[index]);
+    }
+
     finishReading = true;
     pthread_exit(NULL);
 }
 
-//bool isPrime(int n) {
-//    if (n <= 1) return false;
-//    if (n <= 3) return true;
-//    if (n % 2 == 0 || n % 3 == 0) return false;
-//    int i = 5;
-//    while (i * i <= n) {
-//        if (n % i == 0 || n % (i + 2) == 0) return false;
-//        i += 6;
-//    }
-//    return true;
-//}
-// Function to check if a number is prime
 bool isPrime(int n) {
     if (n <= 1) {
         return false;
@@ -52,18 +45,21 @@ bool isPrime(int n) {
             return false;
         }
     }
+    //printf("prime num: %d\n",n);
     return true;
 }
 
 void *find_primes(void *args) {
     int ind = *((int *) args);
     int count = 0;
-    int batch_size = 1000; // Batch size for dequeuing
+    int batch_size = 10; // Batch size for dequeuing
     int nums[batch_size];
+
     while (!finishReading || !isEmpty(&queues[ind])) {
         pthread_mutex_lock(&mutexes[ind]);
         int dequeued = dequeueMany(&queues[ind], nums, batch_size);
         pthread_mutex_unlock(&mutexes[ind]);
+
         for (int i = 0; i < dequeued; ++i) {
             if (isPrime(nums[i])) {
                 count++;

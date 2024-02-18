@@ -13,6 +13,7 @@ bool isPrime(int n) {
             return false;
         }
     }
+    //printf("prime num: %d\n",n);
     return true;
 }
 

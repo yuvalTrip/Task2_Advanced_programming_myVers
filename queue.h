@@ -6,7 +6,7 @@
 #define QUEUE_H
 #include <stdbool.h>
 #include <pthread.h>
-#define MAX_QUEUE_SIZE 100000
+#define MAX_QUEUE_SIZE 10000000
 
 typedef struct {
     int data[MAX_QUEUE_SIZE];
@@ -22,6 +22,7 @@ void initializeQueue(Queue *q);
 int isFull(Queue *q);
 int isEmpty(Queue *q);
 bool enqueue(Queue *q, int value);
+int enqueueMany(Queue *q, int *values, int count);
 int dequeue(Queue *q);
 int dequeueMany(Queue *q, int *values, int count);
 void printQueue(Queue *q);

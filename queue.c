@@ -67,3 +67,15 @@ int dequeueMany(Queue *q, int *values, int count) {
     pthread_mutex_unlock(&(q->lock));
     return dequeued;
 }
+
+int enqueueMany(Queue *q, int *values, int count) {
+    pthread_mutex_lock(&(q->lock));
+    int updated_inserted_index = count - 1;
+    while (!isFull(q) && updated_inserted_index >= 0) {
+        q->rear = (q->rear + 1) % MAX_QUEUE_SIZE;
+        q->data[q->rear] = values[updated_inserted_index--];
+        q->size++;
+    }
+    pthread_mutex_unlock(&(q->lock));
+    return updated_inserted_index + 1;
+}
