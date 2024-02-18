@@ -9,7 +9,7 @@
 bool finishReading = false;
 Queue queues[NUM_THREADS];
 int counters[NUM_THREADS];
-pthread_mutex_t mutexes[NUM_THREADS];
+//pthread_mutex_t mutexes[NUM_THREADS];
 
 void *readData(void *args) {
     int num = 0;
@@ -61,9 +61,9 @@ void *find_primes(void *args) {
     int nums[batch_size];
 
     while (!finishReading || !isEmpty(&queues[ind])) {
-        pthread_mutex_lock(&mutexes[ind]);
+        //pthread_mutex_lock(&mutexes[ind]);
         int dequeued = dequeueMany(&queues[ind], nums, batch_size);
-        pthread_mutex_unlock(&mutexes[ind]);
+      //  pthread_mutex_unlock(&mutexes[ind]);
 
         for (int i = 0; i < dequeued; ++i) {
             if (isPrime(nums[i])) {
@@ -83,7 +83,7 @@ int main() {
 
     for (int i = 0; i < NUM_THREADS; i++) {
         initializeQueue(&queues[i]);
-        pthread_mutex_init(&mutexes[i], NULL);
+       // pthread_mutex_init(&mutexes[i], NULL);
         thread_ids[i] = i;  // Store thread ID explicitly
     }
 
