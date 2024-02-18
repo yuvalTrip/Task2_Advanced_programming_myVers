@@ -19,17 +19,22 @@ void *readData(void *args) {
     int first_index_to_override = 0;
 
     while (scanf("%d", &num) != EOF) {
+        //printf("first_index_to_override:%d\n",first_index_to_override);
         numbers[first_index_to_override++] = num;
-        if (first_index_to_override == batch_size){ ///////////////
+        while (first_index_to_override == batch_size)
+        {
             first_index_to_override = enqueueMany(&queues[index], numbers, first_index_to_override); ///////////////
+            //printf("first_index_to_override loop:%d\n",first_index_to_override);
+            //printf("(first_index_to_override == batch_size):%d\n",(first_index_to_override == batch_size));
             index = (index + 1) % NUM_THREADS; ///////////////////////////////
         }
     }
+    //printf("AFTERLOOP\n");
+
     // Enqueue remaining numbers
-    if (first_index_to_override > 0) {
-        pthread_mutex_lock(&mutexes[index]);
-        enqueueMany(&queues[index], numbers, first_index_to_override); // Think about it
-        pthread_mutex_unlock(&mutexes[index]);
+    while (first_index_to_override > 0) {
+        first_index_to_override=enqueueMany(&queues[index], numbers, first_index_to_override); // Think about it
+        index = (index + 1) % NUM_THREADS; ///////////////////////////////
     }
 
     finishReading = true;
@@ -71,6 +76,7 @@ void *find_primes(void *args) {
 }
 
 int main() {
+    //printf ("this is the start");
     pthread_t t_queueWorkers[NUM_THREADS];
     pthread_t t_readData;
     int thread_ids[NUM_THREADS];
@@ -85,12 +91,16 @@ int main() {
 
     for (int i = 0; i < NUM_THREADS; i++) {
         pthread_create(&t_queueWorkers[i], NULL, find_primes, (void *) &thread_ids[i]);
+        //printf("got heere1\n");
+
     }
+    //printf("got heere2\n");
 
     pthread_join(t_readData, NULL);
 
     for (int i = 0; i < NUM_THREADS; i++) {
         pthread_join(t_queueWorkers[i], NULL);
+        //printf("got heere3\n");
     }
 
     int total_count = 0;
