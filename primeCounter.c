@@ -14,7 +14,7 @@ int counters[NUM_THREADS];
 void *readData(void *args) {
     int num = 0;
     int index = 0;
-    int batch_size = 100; // Adjust the batch size as needed
+    int batch_size = 1000; // Adjust the batch size as needed
     int numbers[batch_size];
     int first_index_to_override = 0;
 
@@ -57,7 +57,7 @@ bool isPrime(int n) {
 void *find_primes(void *args) {
     int ind = *((int *) args);
     int count = 0;
-    int batch_size = 10; // Batch size for dequeuing
+    int batch_size = 1000; // Batch size for dequeuing
     int nums[batch_size];
 
     while (!finishReading || !isEmpty(&queues[ind])) {
