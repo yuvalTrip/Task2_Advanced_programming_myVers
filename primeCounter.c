@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include "queue.h"
+#include "advanced_prime.c"
 
 #define NUM_THREADS 4
 
@@ -41,7 +42,7 @@ void *readData(void *args) {
     pthread_exit(NULL);
 }
 
-bool isPrime(int n) {
+bool isPrime2(int n) {
     if (n <= 1) {
         return false;
     }
@@ -105,7 +106,7 @@ int main() {
 
     int total_count = 0;
     for (int i = 0; i < NUM_THREADS; i++) {
-        printf("counters[%d] %d\n", i, counters[i]);
+        //printf("counters[%d] %d\n", i, counters[i]);
         total_count += counters[i];
     }
 
